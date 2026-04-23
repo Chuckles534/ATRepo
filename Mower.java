@@ -1,10 +1,20 @@
 package mow;
 
+import java.util.Random;
+
 public class Mower {
     private int row;
     private int col;
     private int direction;
     // 0 = up, 1 = right, 2 = down, 3 = left
+
+    private Random rand = new Random();
+
+    public Mower() {
+        row = 1;
+        col = 1;
+        direction = 1;
+    }
 
     public Mower(int row, int col, int direction) {
         this.row = row;
@@ -62,7 +72,48 @@ public class Mower {
         }
     }
 
-    public boolean frontIsGrass(Yard yard) {
+    public void cutGrass(Yard yard) {
+        yard.setCell(row, col, ' ');
+    }
+
+    public char getSymbol() {
+        if (direction == 0) {
+            return '^';
+        } else if (direction == 1) {
+            return '>';
+        } else if (direction == 2) {
+            return 'v';
+        } else {
+            return '<';
+        }
+    }
+
+    public void randomize(Yard yard) {
+        int lawnTop = 1;
+        int lawnLeft = 1;
+        int lawnBottom = yard.getRows() - 2;
+        int lawnRight = yard.getCols() - 2;
+
+        int corner = rand.nextInt(4);
+
+        if (corner == 0) {
+            row = lawnTop;
+            col = lawnLeft;
+        } else if (corner == 1) {
+            row = lawnTop;
+            col = lawnRight;
+        } else if (corner == 2) {
+            row = lawnBottom;
+            col = lawnLeft;
+        } else {
+            row = lawnBottom;
+            col = lawnRight;
+        }
+
+        direction = rand.nextInt(4);
+    }
+
+    public boolean grassAhead(Yard yard) {
         int nextRow = row;
         int nextCol = col;
 
@@ -79,7 +130,7 @@ public class Mower {
         return yard.getCell(nextRow, nextCol) == '+';
     }
 
-    public boolean frontIsBrick(Yard yard) {
+    public boolean brickAhead(Yard yard) {
         int nextRow = row;
         int nextCol = col;
 
@@ -96,19 +147,46 @@ public class Mower {
         return yard.getCell(nextRow, nextCol) == 'R';
     }
 
-    public void cutGrass(Yard yard) {
-        yard.setCell(row, col, ' ');
-    }
+    public boolean updateMower(Yard yard) {
+        // cut current square first
+        cutGrass(yard);
 
-    public char getSymbol() {
-        if (direction == 0) {
-            return '^';
-        } else if (direction == 1) {
-            return '>';
-        } else if (direction == 2) {
-            return 'v';
-        } else {
-            return '<';
+        // if no grass left anywhere, stop
+        if (!yard.hasGrass()) {
+            return false;
         }
+
+        // try turning right first
+        turnRight();
+        if (grassAhead(yard)) {
+            moveForward();
+            return true;
+        }
+
+        // go back to original direction
+        turnLeft();
+
+        // try straight
+        if (grassAhead(yard)) {
+            moveForward();
+            return true;
+        }
+
+        // try left
+        turnLeft();
+        if (grassAhead(yard)) {
+            moveForward();
+            return true;
+        }
+
+        // try backward
+        turnLeft();
+        if (grassAhead(yard)) {
+            moveForward();
+            return true;
+        }
+
+        // no adjacent grass found
+        return false;
     }
 }

@@ -6,33 +6,31 @@ public class YardDemo {
     public static void main(String[] args) throws InterruptedException {
         Scanner sc = new Scanner(System.in);
 
-        System.out.print("Enter height: ");
+        System.out.print("Enter lawn height: ");
         int h = sc.nextInt();
 
-        System.out.print("Enter width: ");
+        System.out.print("Enter lawn width: ");
         int w = sc.nextInt();
 
-        System.out.println();
-
         Yard y = new Yard(h, w);
+        Mower m = new Mower();
 
-        // place mower on the left side of the lawn, facing right
-        Mower m = new Mower(3, 1, 1);
+        m.randomize(y);
 
-        while (!m.frontIsBrick(y)) {
-            m.cutGrass(y);
-
+        while (true) {
             clearScreen();
             y.print(m);
-            Thread.sleep(500);
+            Thread.sleep(200);
 
-            m.moveForward();
+            boolean keepGoing = m.updateMower(y);
+            if (!keepGoing) {
+                break;
+            }
         }
 
-        // cut the last square and print one more time
-        m.cutGrass(y);
         clearScreen();
         y.print(m);
+        System.out.println("Lawn is fully mowed.");
 
         sc.close();
     }
